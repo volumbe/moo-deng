@@ -13,40 +13,36 @@ async def get_pdf_content(url):
         await page.wait_for_timeout(2000)
 
         pdf_links = []
-        for year in range(2017, 2025):  # Iterate from 2017 to 2024
-            await select_year(year, page)
+        
+        for year in range(2024, 2005, -1):  # Iterate from 2024 to 2005
             await page.wait_for_timeout(2000)  # Wait for content to load after year selection
-            for month in range(11):
+            for month in range(12):
                 await select_month(month, page)
                 await page.wait_for_timeout(2000)  # Wait for content to load after month selection
                 month_pdf_links = await get_pdf_links_from_page(page)
                 pdf_links.extend(month_pdf_links)
-
+            await go_prev_year(page)
+        await browser.close()
         return pdf_links
 
-async def select_year(year: int, page: Page):
+async def open_date_range(page: Page):
     month_input = page.locator("#monthSelete")
     await month_input.click()
     await page.wait_for_timeout(500)
-    
-    year_input = page.locator("div[class='laydate-set-ym']")
-    await year_input.click()
-    await page.wait_for_timeout(1000)
 
-    await page.locator(f"li[lay-ym='{year}']").click()
+async def go_prev_year(page: Page):
+    await open_date_range(page)
+    await page.locator("[class='layui-icon laydate-icon laydate-prev-y']").click()
     await page.wait_for_timeout(500)
-    
-    await page.locator("li[lay-ym='0']").click()
 
-    print(f"Selected year: {year}")
+    await page.locator("li[lay-ym='0']").click()
+    await page.wait_for_timeout(500)
+
 
 async def select_month(month: int, page: Page):
-    month_input = page.locator("#monthSelete")
-    await month_input.click()
+    await open_date_range(page)
 
     await page.locator(f"li[lay-ym='{month}']").click()
-    print(f"Selected month: {month}")
-
 
 async def get_pdf_links_from_page(page: Page):
     pdf_links = await page.evaluate('''
@@ -62,9 +58,9 @@ async def get_pdf_links_from_page(page: Page):
 
 async def main():
     pdf_links = await get_pdf_content(COUNTRY_GARDEN_PDF_URL)
-    for link in pdf_links:
-        print(f"Processing PDF link: {link}")
-        # Add your logic here to process each PDF link
+    with open("pdf_links.txt", "w") as file:
+        for link in pdf_links:
+            file.write(f"{link}\n")
 
 if __name__ == "__main__":
     asyncio.run(main())
