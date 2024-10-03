@@ -1,0 +1,5 @@
+pydantic==2.7.1
+instructor==1.2.5
+flask==3.0.3
+python-dotenv==1.0.1
+playwright==1.44.0
